@@ -1,0 +1,9 @@
+path.py
+MySQLdb
+numpy
+scipy
+pandas
+datetime
+tradingWithPython
+bs4
+requests
