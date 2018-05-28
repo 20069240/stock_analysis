@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # get_symbols.py
-__author__ = 'adrian aley'
 
 import datetime # date and time
 import bs4 # web scraping
@@ -36,10 +35,10 @@ def parse_wiki():
 def insert_symbols(symbols):
     """Insert the S&P500 symbols into the MySQL database."""
     # connect to the MySQL instance
-    db_host = 'localhost'
+    db_host = 'hostname'
     db_user = 'username'
     db_pass = 'password'
-    db_name = 'stock_master'
+    db_name = 'database'
     con = mdb.connect(host=db_host, user=db_user, passwd=db_pass, db=db_name)
 
     # create the insert strings
