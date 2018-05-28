@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # tech_analysis.py
-__author__ = 'adrian aley'
 
 import numpy as np, pandas as pd # data analysis and wrangling
 from scipy.stats import norm # statistical functions
