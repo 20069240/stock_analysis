@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # stock_analysis.py
-__author__ = 'adrian aley'
 
 import os, sys # operating system interface
 # import from_db as fdb # MySQL server and database storage
