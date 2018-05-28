@@ -1,8 +1,8 @@
 mysql -u root -p
-CREATE DATABASE stock_master;
-USE stock_master;
-CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON stock_master.* TO 'username'@'localhost';
+CREATE DATABASE 'database';
+USE 'database';
+CREATE USER 'username'@'hostname' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON 'database'.* TO 'username'@'hostname';
 FLUSH PRIVILEGES;
 
 CREATE TABLE `stock_data` (
