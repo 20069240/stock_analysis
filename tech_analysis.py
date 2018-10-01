@@ -89,7 +89,181 @@ def analyze(df):
     mu = np.mean(df["rets"])
     sigma = np.std(df["rets"])
     alpha = norm.ppf(1-c, mu, sigma)
-    df['VaR'] = P - P*(alpha + 1)  
+    df['VaR'] = P - P*(alpha + 1)
+    
+"""
+#Average True Range (ATR)
+    i = 0
+    TR_l = [0]
+    while i < df.index[-1]:
+        TR = max(df.get_value(i + 1, df['high']), df.get_value(i, df['adj_close'])) - min(df.get_value(i + 1, df['low']), df.get_value(i, df['adj_close']))
+        TR_l.append(TR)
+        i = i + 1
+        TR_s = pd.Series(TR_l)
+    df["ATR"] = pd.ewma(TR_s, span = 10, min_periods = 10) 
+	
+#Donchian Channel (DonCh)
+    i = 0
+    DC_l = []
+    while i < 10 - 1:
+        DC_l.append(0)
+        i = i + 1
+    i = 0
+    while i + 10 - 1 < df.index[-1]:
+        DC = max(df['high'].ix[i:i + 10 - 1]) - min(df['low'].ix[i:i + 10 - 1])
+        DC_l.append(DC)
+        i = i + 1
+    df['DonCh'] = pd.Series(DC_l, name = 'Donchian' + str(10))
+    df['DonCh'] = df['DonCh'].shift(10 - 1)   
+	
+#Ultimate Oscillator (UltO)
+    i = 0
+    TR_l = [0]
+    BP_l = [0]
+    while i < df.index[-1]:
+        TR = max(df.get_value(i + 1, df['high']), df.get_value(i, df['adj_close'])) - min(df.get_value(i + 1, df['low']), df.get_value(i, df['adj_close']))
+        TR_l.append(TR)
+        df['BP'] = df.get_value(i + 1, df['adj_close']) - min(df.get_value(i + 1, df['low']), df.get_value(i, df['adj_close']))
+        BP_l.append(df['BP'])
+        i = i + 1
+    df['UltO'] = pd.Series((4 * pd.rolling_sum(pd.Series(BP_l), 7) / pd.rolling_sum(pd.Series(TR_l), 7)) + (2 * pd.rolling_sum(pd.Series(BP_l), 14) / pd.rolling_sum(pd.Series(TR_l), 14)) + (pd.rolling_sum(pd.Series(BP_l), 28) / pd.rolling_sum(pd.Series(TR_l), 28)), name = 'Ultimate Osc')
+
+#Pivot Points, Supports and Resistances (PSR)
+    df["PP"] = pd.Series((df['high'] + df['low'] + df['adj_close']) / 3)
+    df["R1"] = pd.Series(2 * df["PP"] - df['low'])
+    df["S1"] = pd.Series(2 * df["PP"] - df['high'])
+    df["R2"] = pd.Series(df["PP"] + df['high'] - df['low'])
+    df["S2"] = pd.Series(df["PP"] - df['high'] + df['low'])
+    df["R3"] = pd.Series(df['high'] + 2 * (df["PP"] - df['low']))
+    df["S3"] = pd.Series(df['low'] - 2 * (df['high'] - df["PP"]))
+    df["PSR"] = pd.DataFrame({'PP':df["PP"], 'R1':df["R1"], 'S1':df["S1"], 'R2':df["R2"], 'S2':df["S2"], 'R3':df["R3"], 'S3':df["S3"]})
+
+#Triple Exponential Moving Average Oscillator (TRIX)
+    ex1 = pd.ewma(df['adj_close'], span = 9, min_periods = 9 - 1)
+    ex2 = pd.ewma(ex1, span = 12, min_periods = 12 - 1)
+    ex3 = pd.ewma(ex2, span = 26, min_periods = 26 - 1)
+    i = 0
+    ROC_1 = [0]
+    while i + 1 <= df.index[-1]:
+        ROC = (ex3[i + 1] - ex3[i]) / ex3[i]
+        ROC_1.append(ROC)
+        i = i + 1
+    df["TRIX"] = pd.Series(ROC_1, name = 'TRIX' + str(26)) 
+
+#Average Directional Movement Index (ADX)
+    i = 0
+    UpI = []
+    DoI = []
+    while i + 1 <= df.index[-1]:
+        UpMove = df.get_value(i + 1, df['high']) - df.get_value(i, df['high'])
+        DoMove = df.get_value(i, df['low']) - df.get_value(i + 1, df['low'])
+        if UpMove > DoMove and UpMove > 0:
+            UpD = UpMove
+        else: UpD = 0
+        UpI.append(UpD)
+        if DoMove > UpMove and DoMove > 0:
+            DoD = DoMove
+        else: DoD = 0
+        DoI.append(DoD)
+        i = i + 1
+    i = 0
+    TR_l = [0]
+    while i < df.index[-1]:
+        TR = max(df.get_value(i + 1, df['high']), df.get_value(i, df['adj_close'])) - min(df.get_value(i + 1, df['low']), df.get_value(i, df['adj_close']))
+        TR_l.append(TR)
+        i = i + 1
+    TR_s = pd.Series(TR_l)
+    ATR = pd.Series(pd.ewma(TR_s, span = 14, min_periods = 14))
+    UpI = pd.Series(UpI)
+    DoI = pd.Series(DoI)
+    PosDI = pd.Series(pd.ewma(UpI, span = 14, min_periods = 14 - 1) / ATR)
+    NegDI = pd.Series(pd.ewma(DoI, span = 14, min_periods = 14 - 1) / ATR)
+    df['ADX'] = pd.Series(pd.ewma(abs(PosDI - NegDI) / (PosDI + NegDI), span = 14, min_periods = 14 - 1), name = 'ADX' + str(14) + '_' + str(14))
+
+#Vortex Indicator (VI)
+    i = 0
+    df['TR'] = [0]
+    while i < df.index[-1]:
+        Range = max(df.get_value(i + 1, df['high']), df.get_value(i, df['adj_close'])) - min(df.get_value(i + 1, df['low']), df.get_value(i, df['adj_close']))
+        df['TR'].append(Range)
+        i = i + 1
+    i = 0
+    df['VM'] = [0]
+    while i < df.index[-1]:
+        Range = abs(df.get_value(i + 1, df['high']) - df.get_value(i, df['low'])) - abs(df.get_value(i + 1, df['low']) - df.get_value(i, df['high']))
+        df['VM'].append(Range)
+        i = i + 1
+    df['VI'] = pd.Series(pd.rolling_sum(pd.Series(df['VM']), 14) / pd.rolling_sum(pd.Series(df['TR']), 14), name = 'Vortex' + str(14))
+
+#Know Sure Thing (KST Oscillator)
+    M = df['adj_close'].diff(10 - 1)
+    N = df['adj_close'].shift(10 - 1)
+    ROC1 = M / N
+    M = df['adj_close'].diff(10 - 1)
+    N = df['adj_close'].shift(10 - 1)
+    ROC2 = M / N
+    M = df['adj_close'].diff(10 - 1)
+    N = df['adj_close'].shift(10 - 1)
+    ROC3 = M / N
+    M = df['adj_close'].diff(15 - 1)
+    N = df['adj_close'].shift(15 - 1)
+    ROC4 = M / N
+    df['KST'] = pd.Series(pd.rolling_sum(ROC1, 10) + pd.rolling_sum(ROC2, 15) * 2 + pd.rolling_sum(ROC3, 20) * 3 + pd.rolling_sum(ROC4, 30) * 4, name = 'KST' + str(10) + '_' + str(10) + '_' + str(10) + '_' + str(15) + '_' + str(10) + '_' + str(15) + '_' + str(20) + '_' + str(30))
+	df['KSTsignal'] = np.round(df['KST'].rolling(window = 9, center = False).mean(), 2)
+
+#Relative Strength Index (RSI)
+    i = 0
+    UpI = [0]
+    DoI = [0]
+    while i + 1 <= df.index[-1]:
+        UpMove = df.get_value(i + 1, df['high']) - df.get_value(i, df['high'])
+        DoMove = df.get_value(i, df['low']) - df.get_value(i + 1, df['low'])
+        if UpMove > DoMove and UpMove > 0:
+            UpD = UpMove
+        else: UpD = 0
+        UpI.append(UpD)
+        if DoMove > UpMove and DoMove > 0:
+            DoD = DoMove
+        else: DoD = 0
+        DoI.append(DoD)
+        i = i + 1
+    UpI = pd.Series(UpI)
+    DoI = pd.Series(DoI)
+    PosDI = pd.Series(pd.ewma(UpI, span = 14, min_periods = 14 - 1))
+    NegDI = pd.Series(pd.ewma(DoI, span = 14, min_periods = 14 - 1))
+    df['RSI'] = pd.Series(PosDI / (PosDI + NegDI), name = 'RSI' + str(14))
+
+#True Strength Index (TSI)
+    M = pd.Series(df['adj_close'].diff(1))
+    aM = abs(M)
+    EMA1 = pd.Series(pd.ewma(M, span = 25, min_periods = 25 - 1))
+    aEMA1 = pd.Series(pd.ewma(aM, span = 25, min_periods = 25 - 1))
+    EMA2 = pd.Series(pd.ewma(EMA1, span = 13, min_periods = 13 - 1))
+    aEMA2 = pd.Series(pd.ewma(aEMA1, span = 13, min_periods = 13 - 1))
+    df['TSI'] = pd.Series(EMA2 / aEMA2, name = 'TSI' + str(25) + '_' + str(13))
+
+#Accumulation/Distribution (AD)
+    df['AD'] = (2 * df['adj_close'] - df['high'] - df['low']) / (df['high'] - df['low']) * df['volume']
+	ad = df['AD']
+    M = ad.diff(10 - 1)
+    N = ad.shift(10 - 1)
+    ROC = M / N
+    df['AD_ROC'] = pd.Series(ROC, name = 'Acc/Dist_RoC' + str(10))
+
+#On-balance Volume (OBV)
+    i = 0
+    df['OBV'] = [0]
+	OBV = df['OBV']
+    while i < df.index[-1]:
+        if df.get_value(i + 1, df['adj_close']) - df.get_value(i, df['adj_close']) > 0:
+            OBV.append(df.get_value(i + 1, df['volume']))
+        if df.get_value(i + 1, df['adj_close']) - df.get_value(i, df['adj_close']) == 0:
+            OBV.append(0)
+        if df.get_value(i + 1, df['adj_close']) - df.get_value(i, df['adj_close']) < 0:
+            OBV.append(-df.get_value(i + 1, df['volume']))
+        i = i + 1
+    OBV = pd.Series(OBV)
+    df['OBV_MA'] = pd.Series(pd.rolling_mean(OBV, 10), name = 'OBV' + str(10))
+ """
+
     return df
-
-
