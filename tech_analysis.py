@@ -264,6 +264,6 @@ def analyze(df):
         i = i + 1
     OBV = pd.Series(OBV)
     df['OBV_MA'] = pd.Series(pd.rolling_mean(OBV, 10), name = 'OBV' + str(10))
- """
+    """
 
     return df
