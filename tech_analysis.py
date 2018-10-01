@@ -6,18 +6,18 @@ import numpy as np, pandas as pd # data analysis and wrangling
 from scipy.stats import norm # statistical functions
 
 def analyze(df):
-#Simple Moving Average
+#Simple Moving Average (SMA)
     df["SMA20d"] = np.round(df["adj_close"].rolling(window = 20, center = False).mean(), 2)
     df["SMA50d"] = np.round(df["adj_close"].rolling(window = 50, center = False).mean(), 2)
     df["SMA200d"] = np.round(df["adj_close"].rolling(window = 200, center = False).mean(), 2)
     df['SMA20d-SMA50d'] = (df['SMA20d'] - df['SMA50d'])
     
-#Exponential Moving Average
+#Exponential Moving Average (EMA)
     df["EMA10d"] = pd.Series.ewm(df['adj_close'], ignore_na=True,span=10,min_periods=9,adjust=True).mean()
     df["EMA50d"] = pd.Series.ewm(df['adj_close'], ignore_na=False,span=50,min_periods=49,adjust=True).mean()
     df["EMA100d"] = pd.Series.ewm(df['adj_close'], ignore_na=False,span=100,min_periods=99,adjust=True).mean()
     
-#Bollinger Bands 
+#Bollinger Bands (BB)
     df["STD20d"] = pd.Series.rolling(df['adj_close'],window=20,center=False).std()
     df['Bollinger Band(+)'] = df["SMA20d"] + 2 * df["STD20d"]
     df['Bollinger Band(-)'] = df["SMA20d"] - 2 * df["STD20d"]
@@ -25,22 +25,21 @@ def analyze(df):
     df["B2"] = (df['adj_close'] - df["SMA20d"] + 2 * df["STD20d"]) / (4 * df["STD20d"])
     df["%B"] = (df['adj_close'] - df['Bollinger Band(-)']) / (df['Bollinger Band(+)'] - df['Bollinger Band(-)'])
     
-#Momentum
+#Momentum (MOM)
     df["MOM"] = df['adj_close'].diff(10)
     
-#Rate of Change
+#Rate of Change (RoC)
     M = df['adj_close'].diff(10 - 1)
     N = df['adj_close'].shift(10 - 1)
     df["RoC"] = M / N
     
-#Stochastic oscillator %K
+#Stochastic Oscillator %K (SO%k)
     df["SO%k"] = (df['adj_close'] - df['low']) / (df['high'] - df['low'])
     
-#Stochastic oscillator %D
-    df["SO%k"] = (df['adj_close'] - df['low']) / (df['high'] - df['low'])
+#Stochastic Oscillator %D (SO%d)
     df["SO%d"] = pd.Series.ewm( df["SO%k"],ignore_na=False,span=10,min_periods=9,adjust=True).mean()
     
-#Mass Index
+#Mass Index (MX)
     Range = df['high'] - df['low']
     EX1 = pd.Series.ewm(Range, ignore_na=False,span=9,min_periods=8,adjust=True).mean()
     EX2 = pd.Series.ewm(EX1, ignore_na=False,span=9,min_periods=8,adjust=True).mean()
@@ -54,18 +53,18 @@ def analyze(df):
     df["MACDsign"] = pd.Series.ewm(df["MACD"], ignore_na=False,span=9,min_periods=8,adjust=True).mean()
     df["MACDdiff"] = pd.Series(df["MACD"] - df["MACDsign"], name = 'MACDdiff' + str(9) + '_' + str(26))
     
-#Force Index
+#Force Index (FX)
     df["ForceIndex"] = pd.Series(df['adj_close'].diff(10) * df['volume'].diff(10), name = 'force' + str(10))
     
-#Ease of Movement
+#Ease of Movement (EoM)
     df["EoM"] = (df['high'].diff(1) + df['low'].diff(1)) * (df['high'] - df['low']) / (2 * df['volume'])
     df["EoM_Ma"] = pd.Series.rolling(df["EoM"], window=10,center=False).mean()
     
-#Commodity Channel Index
+#Commodity Channel Index (CCI)
     df["PP"] = (df['high'] + df['low'] + df['adj_close']) / 3
     df["CCI"] = pd.Series((df["PP"] - pd.Series.rolling(df["PP"], window=20,center=False).mean()) / pd.Series.rolling(df["PP"], window=20,center=False).std())   
     
-#Coppock Curve
+#Coppock Curve (CoppCurve)
     M1 = df['adj_close'].diff(int(20 * 11 / 10) - 1)
     N1 = df['adj_close'].shift(int(20 * 11 / 10) - 1)
     ROC1 = M1 / N1
@@ -74,16 +73,16 @@ def analyze(df):
     ROC2 = M2 / N2
     df['CoppCurve'] = pd.Series.ewm(ROC1 + ROC2, ignore_na=False,span=20,min_periods=20,adjust=True).mean()
     
-#Keltner Channel
+#Keltner Channel (KelCh)
     df['KelChM'] = pd.Series.rolling((df['high'] + df['low'] + df['adj_close']) / 3, window=10,center=False).mean()
     df['KelChU'] = pd.Series.rolling((4 * df['high'] - 2 * df['low'] + df['adj_close']) / 3, window=10,center=False).mean()
     df['KelChD'] = pd.Series.rolling((-2 * df['high'] + 4 * df['low'] + df['adj_close']) / 3, window=10,center=False).mean()    
     
-#Chaikin Oscillator
+#Chaikin Oscillator (CO)
     df['ADL'] = (2 * df['adj_close'] - df['high'] - df['low']) / (df['high'] - df['low']) * df['volume']
     df['Chaikin'] = pd.Series.ewm(df['ADL'], ignore_na=False,span=3,min_periods=2,adjust=True).mean() - pd.Series.ewm(df['ADL'], ignore_na=False,span=10,min_periods=9,adjust=True).mean()
     
-# Value at Risk
+#Value at Risk (VaR)
     P = 1e6   # 1,000,000 USD
     c = 0.99  # 99% confidence interval
     df["rets"] = df["adj_close"].pct_change()
@@ -92,3 +91,5 @@ def analyze(df):
     alpha = norm.ppf(1-c, mu, sigma)
     df['VaR'] = P - P*(alpha + 1)  
     return df
+
+
