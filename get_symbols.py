@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # get_symbols.py
 
 import datetime # date and time
