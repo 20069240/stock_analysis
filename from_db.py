@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # from_db.py
 
 import MySQLdb as mdb # MySQL server and database storage
