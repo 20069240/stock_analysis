@@ -62,11 +62,6 @@ upDays = pd.DataFrame(countPositive.sum())
 total_return = daily_return.tail(1).transpose()
 corr = close.corr()
 
-# create csv files for each stock
-cwd = os.path.dirname(__file__)
-for s in symbols:
-    stocks[s].to_csv(cwd + '/dumps/' + s + '.csv')
-
 # start plotting data
 daily_return.plot(grid = True, title = 'Cummulative Return (Percent)', lw = .5
                   ).axhline(y = 1, color = "black", lw = 2)
@@ -80,3 +75,7 @@ close.plot(grid = True, title = 'Adjusted Close (Price)', lw = .5)
 _, ax = plt.subplots() 
 _ = sns.heatmap(corr, ax=ax, xticklabels=corr.columns.values, 
                 yticklabels=corr.columns.values, cmap='coolwarm')
+
+# create a csv file for each stock & add the OHLCV data
+cwd = os.path.dirname(__file__)
+for s in symbols: stocks[s].to_csv(cwd + '/dumps/' + s + '.csv')
