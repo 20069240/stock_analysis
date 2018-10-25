@@ -5,10 +5,10 @@ import os, sys # operating system interface
 # import from_db as fdb # MySQL instance
 import datetime as dt # date & time
 import tech_analysis as tech # technical indicators
-import pandas as pd, numpy as np # data analysis & wrangling
+import pandas as pd, numpy as np # data analysis & data wrangling
 import matplotlib.pyplot as plt  # plotting data
 import seaborn as sns # statistical data visualization
-sns.set_style('darkgrid')
+sns.set_style('darkgrid') # set chart style
 from tradingWithPython.lib import yahooFinance as yf # historical financial data
 
 symbols = ['WFC','ORCL','JNJ','MSFT','VZ','DIS','WMT','MCD','TGT','COKE','FB','SNAP']
@@ -20,9 +20,9 @@ today = dt.date.today() # current day
 now = dt.datetime.now() # current time
 count = len(symbols) # ticker list size
 
-print ("Python: {}\n\n".format(sys.version) + tz + 
-       '\n' + now.strftime('%I:%M:%S%p') + ' ' + today.strftime(
-        '%m/%d/%Y') + '\n\n' + 'Downloading Data for %s Stocks...\n' % count)
+print ("Python: {}\n\n".format(sys.version), tz, 
+       '\n', now.strftime('%I:%M:%S%p'), ' ', today.strftime(
+        '%m/%d/%Y'), '\n\n', 'Downloading Data for %s Stocks...\n' % count)
 
 stocks = {s: yf.getHistoricData(
         s, start) for s in symbols} # fetch price data for given tickers
@@ -34,13 +34,13 @@ for s in symbols: # format date (index) column
     stocks[s].set_index("Date", drop=True, inplace=True)
 
 elapsed = dt.datetime.now() - now # calculate total execution time
-print(('\n' 'Completed Successfully in %s') % elapsed)
+print(('\n' 'Completed Successfully in %s\n') % elapsed)
   
-close = pd.DataFrame({s: stocks[s]['adj_close'] for s in symbols})
-price = {s: close.loc[:, s] for s in symbols}
-close = close.dropna()
-missing_cl = close.isna()
-info = close.describe()
+close = pd.DataFrame({s: stocks[s]['adj_close'] for s in symbols}) # all close data
+price = {s: close.loc[:, s] for s in symbols} # series of all close data for each stock
+close = close.dropna() # remove dates with missing close data
+missing_cl = close.isna() # check if close data is missing
+info = close.describe() # statistical overview of close data
 
 # normalize adjusted close price for all stocks (rescaled: 0-1)
 low_cl = close.min()
@@ -76,6 +76,17 @@ _, ax = plt.subplots()
 _ = sns.heatmap(corr, ax=ax, xticklabels=corr.columns.values, 
                 yticklabels=corr.columns.values, cmap='coolwarm')
 
-# create a csv file for each stock & add the OHLCV data
+# get current working directory
 cwd = os.path.dirname(__file__)
-for s in symbols: stocks[s].to_csv(cwd + '/dumps/' + s + '.csv')
+# set target directory
+dirname = (cwd + '/stocks/')
+
+# create target & all intermediate directories if don't exists
+if not os.path.exists(dirname):
+    os.makedirs(dirname)
+    print("Created Directory:", dirname)
+else:
+    print("Updated %s CSV Files in" % count, dirname)
+
+# create / update csv files in target directory for each stock
+for s in symbols: stocks[s].to_csv(dirname + s + '.csv')
