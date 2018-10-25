@@ -16,6 +16,7 @@ def ticker_pull():
         cur = con.cursor()
         cur.execute("SELECT id, ticker FROM symbol")
         data = cur.fetchall()
+        con.close()
         return [(d[1]) for d in data]
 
 symbols = ticker_pull()
