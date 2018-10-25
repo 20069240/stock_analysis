@@ -52,6 +52,7 @@ def insert_symbols(symbols):
     with con:
         cur = con.cursor()
         cur.executemany(final_str, symbols)
+        con.close()
 
 if __name__ == "__main__":
     symbols = parse_wiki()
