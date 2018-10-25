@@ -72,7 +72,8 @@ stock_change.plot(grid = True, subplots=True, title =
 close.plot(grid = True, subplots=True, title = 'Adjusted Close (Price)', 
            lw = .5, layout=(int(count/2), 2))
 close.plot(grid = True, title = 'Adjusted Close (Price)', lw = .5)
-_, ax = plt.subplots() 
+_, ax = plt.subplots()
+_ = plt.title('Correlation Matrix (Price)')
 _ = sns.heatmap(corr, ax=ax, xticklabels=corr.columns.values, 
                 yticklabels=corr.columns.values, cmap='coolwarm')
 
