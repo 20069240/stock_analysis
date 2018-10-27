@@ -11,7 +11,8 @@ import seaborn as sns # statistical data visualization
 sns.set_style('darkgrid') # set chart style
 from tradingWithPython.lib import yahooFinance as yf # historical financial data
 
-symbols = ['WFC','ORCL','JNJ','MSFT','VZ','DIS','WMT','MCD','TGT','COKE','FB','SNAP']
+symbols = ['VZ','T','S','TMUS','WFC','ORCL','JNJ','MSFT','DIS',
+           'WMT','MCD','TGT','COKE','FB','AAPL','SNAP','INTC','HK']
 # symbols = fdb.symbols[8:16] # pull symbols directly from database
 
 start = 2000/1/1 # set starting date for historic data
@@ -85,9 +86,12 @@ dirname = (cwd + '/stocks/')
 # create target & all intermediate directories if don't exists
 if not os.path.exists(dirname):
     os.makedirs(dirname)
-    print("Created Directory:", dirname)
+    print("Created directory:", dirname,
+          "\n\nAdded %s CSV Files to New Directory" % int(count + 2))
 else:
-    print("Updated %s CSV Files in" % count, dirname)
+    print("Updated %s CSV Files in" % int(count + 2), dirname)
 
 # create / update csv files in target directory for each stock
 for s in symbols: stocks[s].to_csv(dirname + s + '.csv')
+daily_return.to_csv(dirname + 'Returns' + '.csv')
+stock_change.to_csv(dirname + 'Changes' + '.csv')
